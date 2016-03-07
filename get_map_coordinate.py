@@ -38,6 +38,8 @@ with open('unfound.csv', 'w') as unfound:
             line_str = '%s,%s,%s,%s\n' % (st1, st2, lat, lng)
             added.write(line_str)
             added_count += 1
+            if added_count % 100 == 0:
+                print 'Found 100 more'
 added.close()
 print 'total added: %s' % (added_count)
 print 'total skipped: %s' % (duplicate_count)
