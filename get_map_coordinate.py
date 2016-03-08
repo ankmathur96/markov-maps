@@ -8,6 +8,7 @@ if os.path.isfile(old_int_file):
         for line in int_dest_old:
             st1, st2, lat, lng = line.rstrip().split(',')
             int_dict[(st1, st2)] = (lat, lng)
+exit()
 added_count = 0
 duplicate_count = 0
 skip_end_count = 0
