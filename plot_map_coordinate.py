@@ -21,7 +21,7 @@ int_dict = {}
 strt_dict = {}
 lat_range = [37.7, 37.85]
 lng_range = [-122.60, -122.35]
-coords = set()
+coords = {}
 with open('intersection_data.csv', 'r') as int_dest_old:
     for line in int_dest_old:
         st1, st2, lat, lng = line.rstrip().split(',')
@@ -32,13 +32,14 @@ with open('intersection_data.csv', 'r') as int_dest_old:
                 if coord in coords:
                     # print 'skipped %s %s' % (st1, st2)
                     continue
-                coords.add(coord)
+                coords[coord] = []
                 # int_dict[(st1, st2)] = coord
                 sts = set(st1.split(' \ ')) | set(st2.split(' \ '))
                 for st in sts:
                     if st not in strt_dict:
                         strt_dict[st] = set()
                     strt_dict[st].add(coord)
+                    coords[coord].append(st)
         except ValueError:
             pass
 edges = []
@@ -46,7 +47,7 @@ for st, ints in strt_dict.iteritems():
     order0 = sorted(ints, key=lambda coord: coord[0])
     order1 = sorted(ints, key=lambda coord: coord[1])
     if order0[0] != order1[0]:
-        order1 = reversed(order1)
+        order1 = list(reversed(order1))
     correct_list = order0
     for coord0, coord1 in izip(order0, order1):
         if coord0 != coord1:
@@ -60,11 +61,20 @@ for st, ints in strt_dict.iteritems():
             edges.append((prev, coord))
         prev = coord
 
+coord_list = list(coords.keys())
 roads = collections.LineCollection(edges)
 fig, ax = plt.subplots()
+ax.scatter(*izip(*coord_list), picker=True)
 ax.add_collection(roads)
 ax.autoscale()
 ax.margins(0.1)
+
+def on_pick(event):
+    for ind in event.ind:
+        print coords[coord_list[ind]]
+fig.canvas.mpl_connect('pick_event', on_pick)
+
+# plt.plot((0, 1), (1, 3))
 # plt.scatter(*zip(*int_dict.values()))
 # for streets, (x, y) in int_dict.iteritems():
 #     label = str(streets)
