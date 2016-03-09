@@ -85,30 +85,33 @@ def optimal_order(L):
 lat_range = [37.7, 37.85]
 lng_range = [-122.60, -122.35]
 max_road_distance = 0.007
-int_dict = {}
 strt_dict = {}
-coords = {}
+labeled_coords = {}
+def in_range(lat, lng):
+    return lat_range[0] < lat < lat_range[1] and lng_range[0] < lng < lng_range[1]
+
 with open('intersection_data.csv', 'r') as int_dest_old:
     for line in int_dest_old:
         st1, st2, lat, lng = line.rstrip().split(',')
         try:
             lat, lng = float(lat), float(lng)
             coord = (lng, lat)
-            if lat_range[0] < lat < lat_range[1] and lng_range[0] < lng < lng_range[1]:
-                if coord in coords:
-                    # print 'skipped %s %s' % (st1, st2)
+            if in_range(lat, lng):
+                if coord in labeled_coords:
                     continue
-                coords[coord] = []
-                # int_dict[(st1, st2)] = coord
+                labeled_coords[coord] = []
                 sts = set(st1.split(' \ ')) | set(st2.split(' \ '))
                 for st in sts:
                     if st not in strt_dict:
                         strt_dict[st] = set()
                     strt_dict[st].add(coord)
-                    coords[coord].append(st)
+                    labeled_coords[coord].append(st)
         except ValueError:
             pass
-edges = []
+labeled_edges = []
+labeled_adj_list = {}
+for coord in labeled_coords:
+    labeled_adj_list[coord] = []
 for st, ints in strt_dict.iteritems():
     order0 = sorted(ints, key=lambda coord: coord[0])
     order1 = sorted(ints, key=lambda coord: coord[1])
@@ -126,29 +129,128 @@ for st, ints in strt_dict.iteritems():
     for coord in correct_list:
         if prev != None:
             if dist(coord, prev) < max_road_distance:
-                edges.append((prev, coord))
+                labeled_edges.append((prev, coord))
+                labeled_adj_list[prev].append(coord)
+                labeled_adj_list[coord].append(prev)
         prev = coord
 
-coord_list = list(coords.keys())
-roads = collections.LineCollection(edges)
+# labeled_coord_list = list(labeled_coords.keys())
+# fig, ax = plt.subplots()
+# ax.scatter(*itertools.izip(*labeled_coord_list), picker=True)
+# ax.add_collection(collections.LineCollection(labeled_edges))
+# ax.autoscale()
+# ax.margins(0.1)
+
+# def on_pick(event):
+#     for ind in event.ind:
+#         coord = labeled_coord_list[ind]
+#         print labeled_coords[coord], coord
+# fig.canvas.mpl_connect('pick_event', on_pick)
+
+
+
+
+
+coords = []
+old_id_to_id = {}
+edge_list = []
+adjancency_list = {}
+
+def real_lng(x):
+    return 1.8058362e-4 * x - 123.020261
+
+def real_lat(x):
+    return -1.413746e-4 * x + 38.31506813
+
+with open('SF_nodes.txt', 'r') as node_file:
+    for line in node_file:
+        nid, x, y = line.rstrip().split(' ')
+        lng, lat = real_lng(float(x)), real_lat(float(y))
+        if in_range(lat, lng):
+            old_id_to_id[nid] = len(coords)
+            coords.append((nid, (lng, lat)))
+for id in xrange(len(coords)):
+    adjancency_list[id] = []
+with open('SF_edges.txt', 'r') as edge_file:
+    for line in edge_file:
+        _eid, nid1, nid2, _dist = line.rstrip().split(' ')
+        if nid1 in old_id_to_id and nid2 in old_id_to_id:
+            new_id1 = old_id_to_id[nid1]
+            new_id2 = old_id_to_id[nid2]
+            (old_id1, coord1) = coords[new_id1]
+            (old_id2, coord2) = coords[new_id2]
+            adjancency_list[new_id1].append(new_id2)
+            adjancency_list[new_id2].append(new_id1)
+            edge_list.append((coord1, coord2))
 fig, ax = plt.subplots()
-ax.scatter(*itertools.izip(*coord_list), picker=True)
-ax.add_collection(roads)
+new_labeled_id = [None for _ in xrange(len(coords))]
+sorted_pairs = sorted([(coord, id) for id, (old_id, coord) in enumerate(coords)])
+sorted_coords, sorted_ids = zip(*sorted_pairs)
+threshold = 0.0002
+coords_to_match = []
+for labeled_coord, label in labeled_coords.iteritems():
+    first = 0
+    last = len(sorted_coords) - 1
+    coordx, coordy = labeled_coord
+    while last - first > 1:
+        mid = (first + last) // 2
+        midpoint = sorted_coords[mid]
+        if midpoint[0] > coordx - threshold:
+            last = mid
+        else:
+            first = mid
+    closest = None
+    two_tries = True
+    while (two_tries or abs(sorted_coords[first][0] - coordx) < threshold) and first < len(sorted_coords):
+        if abs(sorted_coords[first][1] - coordy) < threshold:
+            closest = first
+        two_tries = False
+        first += 1
+    if closest != None:
+        new_labeled_id[closest] = label
+        coords_to_match.append((labeled_coord, closest))
+matched_coords = {}
+matched_ids = [False for _ in xrange(len(coords))]
+threshold = 0.0005
+for labeled_coord, new_id in coords_to_match:
+    labeled_neighbors = labeled_adj_list[labeled_coord][:]
+    new_neighbor_ids = adjancency_list[new_id][:]
+    best_match = None
+    min_distance = float('inf')
+    changed = True
+    while changed:
+        changed = False
+        for new_neighbor_id in new_neighbor_ids:
+            if matched_ids[new_neighbor_id]:
+                continue
+            new_neighbor = coords[new_neighbor_id][1]
+            for old_neighbor in labeled_neighbors:
+                if old_neighbor in matched_coords:
+                    continue
+                if abs(old_neighbor[0] - new_neighbor[0]) < threshold and abs(old_neighbor[1] - new_neighbor[1]) < threshold:
+                    curr_dist = dist(old_neighbor, new_neighbor)
+                    if curr_dist < min_distance:
+                        min_distance = curr_dist
+                        best_match = (old_neighbor, new_neighbor_id)
+                        changed = True
+        if changed:
+            old_neighbor, new_neighbor_id = best_match
+            matched_coords[old_neighbor] = True
+            matched_ids[new_neighbor_id] = True
+            new_labeled_id[new_neighbor_id] = labeled_coords[old_neighbor]
+            new_neighbor_ids.remove(new_neighbor_id)
+            labeled_neighbors.remove(old_neighbor)
+            min_distance = float('inf')
+            coords_to_match.append((old_neighbor, new_neighbor_id))
+ax.scatter(*itertools.izip(*sorted_coords), picker=True)
+ax.add_collection(collections.LineCollection(edge_list))
 ax.autoscale()
 ax.margins(0.1)
-
 def on_pick(event):
     for ind in event.ind:
-        coord = coord_list[ind]
-        print coords[coord], coord
+        coord = sorted_coords[ind]
+        id = sorted_ids[ind]
+        label = new_labeled_id[id]
+        print id, coord, label
 fig.canvas.mpl_connect('pick_event', on_pick)
-
-# plt.plot((0, 1), (1, 3))
-# plt.scatter(*zip(*int_dict.values()))
-# for streets, (x, y) in int_dict.iteritems():
-#     label = str(streets)
-#     plt.annotate(
-#         label, 
-#         xy = (x, y), xytext = (-20, 20),
-#         textcoords = 'offset points')
 plt.show()
