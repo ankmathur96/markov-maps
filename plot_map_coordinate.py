@@ -84,11 +84,16 @@ def optimal_order(L):
 
 lat_range = [37.7, 37.85]
 lng_range = [-122.60, -122.35]
-max_road_distance = 0.007
-strt_dict = {}
-labeled_coords = {}
+
 def in_range(lat, lng):
     return lat_range[0] < lat < lat_range[1] and lng_range[0] < lng < lng_range[1]
+
+
+# Code to plot the initial data that I got, see below for the new data part
+
+max_road_distance = float('inf') # 0.007
+strt_dict = {}
+labeled_coords = {}
 
 with open('intersection_data.csv', 'r') as int_dest_old:
     for line in int_dest_old:
@@ -149,26 +154,31 @@ for st, ints in strt_dict.iteritems():
 
 
 
+# Code to plot and record from the new files that Eli found
 
-
+# a list of (original id from the file, (coordinatex, coordinatey)) -- new id is the index in coords
+# id's are reassigned since we don't care about the roads outside of SF -- there would be too many roads
 coords = []
-old_id_to_id = {}
-edge_list = []
-adjancency_list = {}
+old_id_to_id = {} # maps original id from the file to new id (index of the coordinate in coords)
+edge_list = [] # used for plotting purposes
+adjancency_list = {} # maps new id to adjacent new ids
 
-def real_lng(x):
+def real_lng(x): # translates the unit used by the new dataset to longitude
     return 1.8058362e-4 * x - 123.020261
 
-def real_lat(x):
+def real_lat(x): # translates the unit used by the new dataset to latitude
     return -1.413746e-4 * x + 38.31506813
 
+# record nodes
 with open('SF_nodes.txt', 'r') as node_file:
     for line in node_file:
         nid, x, y = line.rstrip().split(' ')
-        lng, lat = real_lng(float(x)), real_lat(float(y))
-        if in_range(lat, lng):
+        lng, lat = real_lng(float(x)), real_lat(float(y)) # translate their unit into actual latitude and longitude
+        if in_range(lat, lng): # Only keep the roads in SF
             old_id_to_id[nid] = len(coords)
             coords.append((nid, (lng, lat)))
+
+# record edges
 for id in xrange(len(coords)):
     adjancency_list[id] = []
 with open('SF_edges.txt', 'r') as edge_file:
@@ -179,10 +189,12 @@ with open('SF_edges.txt', 'r') as edge_file:
             new_id2 = old_id_to_id[nid2]
             (old_id1, coord1) = coords[new_id1]
             (old_id2, coord2) = coords[new_id2]
+            # add to adjacency list in terms of the new id of the nodes
             adjancency_list[new_id1].append(new_id2)
             adjancency_list[new_id2].append(new_id1)
             edge_list.append((coord1, coord2))
-fig, ax = plt.subplots()
+
+# try to match the new dataset intersection location with the original dataset to obtain road names
 new_labeled_id = [None for _ in xrange(len(coords))]
 sorted_pairs = sorted([(coord, id) for id, (old_id, coord) in enumerate(coords)])
 sorted_coords, sorted_ids = zip(*sorted_pairs)
@@ -212,6 +224,7 @@ for labeled_coord, label in labeled_coords.iteritems():
 matched_coords = {}
 matched_ids = [False for _ in xrange(len(coords))]
 threshold = 0.0005
+# propagate the matching as much as possible from the matched intersections
 for labeled_coord, new_id in coords_to_match:
     labeled_neighbors = labeled_adj_list[labeled_coord][:]
     new_neighbor_ids = adjancency_list[new_id][:]
@@ -242,15 +255,22 @@ for labeled_coord, new_id in coords_to_match:
             labeled_neighbors.remove(old_neighbor)
             min_distance = float('inf')
             coords_to_match.append((old_neighbor, new_neighbor_id))
+
+# plot the points
+fig, ax = plt.subplots()
 ax.scatter(*itertools.izip(*sorted_coords), picker=True)
 ax.add_collection(collections.LineCollection(edge_list))
 ax.autoscale()
 ax.margins(0.1)
-def on_pick(event):
+def on_pick(event): # can click the points to see new id, coordinate, and label (if any)
     for ind in event.ind:
         coord = sorted_coords[ind]
-        id = sorted_ids[ind]
-        label = new_labeled_id[id]
-        print id, coord, label
+        newid = sorted_ids[ind]
+        label = new_labeled_id[newid]
+        print newid, coord, label
 fig.canvas.mpl_connect('pick_event', on_pick)
 plt.show()
+
+# what you guys probably are going to use, see their respective comments above
+coords = coords
+adjancency_list = adjancency_list 
