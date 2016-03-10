@@ -17,6 +17,9 @@ def create_pr_matrix(g_map):
 			pr[get_node_index(node)][get_node_index(n)] = distribution[i]
 	return pr
 
+def alter_graph(g_map):
+	reversed_graph = g_map.reverse(copy=True)
+
 def test_pr_matrix():
 	N_NODES = 5
 	g = graphs.MultiGraph()
