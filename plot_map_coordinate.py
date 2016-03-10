@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import collections
 import pprint
 import itertools
+import networkx
 
 def union_find(n):
     def find(x):
@@ -256,21 +257,88 @@ for labeled_coord, new_id in coords_to_match:
             min_distance = float('inf')
             coords_to_match.append((old_neighbor, new_neighbor_id))
 
-# plot the points
-fig, ax = plt.subplots()
-ax.scatter(*itertools.izip(*sorted_coords), picker=True)
-ax.add_collection(collections.LineCollection(edge_list))
-ax.autoscale()
-ax.margins(0.1)
-def on_pick(event): # can click the points to see new id, coordinate, and label (if any)
-    for ind in event.ind:
-        coord = sorted_coords[ind]
-        newid = sorted_ids[ind]
-        label = new_labeled_id[newid]
-        print newid, coord, label
-fig.canvas.mpl_connect('pick_event', on_pick)
-plt.show()
+# # plot the points
+# fig, ax = plt.subplots()
+# ax.scatter(*itertools.izip(*sorted_coords), picker=True)
+# ax.add_collection(collections.LineCollection(edge_list))
+# ax.autoscale()
+# ax.margins(0.1)
+# def on_pick(event): # can click the points to see new id, coordinate, and label (if any)
+#     for ind in event.ind:
+#         coord = sorted_coords[ind]
+#         newid = sorted_ids[ind]
+#         label = new_labeled_id[newid]
+#         print newid, coord, label
+# fig.canvas.mpl_connect('pick_event', on_pick)
+# plt.show()
 
 # what you guys probably are going to use, see their respective comments above
 coords = coords
-adjancency_list = adjancency_list 
+adjancency_list = adjancency_list
+class Node():
+    def __init__(self, nid, reversed_graph):
+        self.id = nid
+        self.reversed = reversed_graph
+        self.x = None
+        self.y = None
+        self.score = None
+
+    def __eq__(self, other):
+        return self.id == other.id and self.reversed == other.reversed
+    def __hash__(self):
+        return hash((self.id, self.reversed))
+    def __str__(self):
+        return repr(self)
+    def __repr__(self):
+        return 'Node(id=' + str(self.id) + ', reversed=' + str(self.reversed) + ', (x,y) = (' + str(self.x) + ',' + str(self.y) + '), score=' + str(self.score) + ')'
+
+def find_node(nid, coords):
+    for x in coords:
+        if x[0] == nid:
+            return x
+    return -1
+def convert_to_graph(coords, adjacency_list):
+    graph = networkx.MultiDiGraph()
+    for k in adjacency_list:
+        node_coord = find_node(k, coords)
+        node_to_add = Node(k, False)
+        if node_coord != -1:
+            node_to_add.x, node_to_add.y = node_coord[1]
+        graph.add_node(node_to_add)
+    for k in adjacency_list:
+        graph.add_edge(Node(k, False), Node(k, False))
+        for neighbor in adjacency_list[k]:
+            if graph.has_edge(Node(neighbor,False), Node(k, False)):
+                continue
+            else:
+                graph.add_edge(Node(k, False), Node(neighbor, False))
+    # networkx.draw(graph)
+    # plt.show()
+    print graph.nodes()
+    reverse_graph = graph.reverse(copy=True)
+    # networkx.draw(graph)
+    # plt.show()
+    for node in reverse_graph.nodes_iter():
+        node_to_add = Node(node.id, True)
+        node_to_add.x, node_to_add.y = node.x, node.y
+        graph.add_node(node_to_add)
+    for node in reverse_graph.nodes_iter():
+        new_node = Node(node.id, True)
+        for n in reverse_graph.neighbors(node):
+            graph.add_edge(new_node, Node(n.id, True))
+    print graph.nodes()
+    for node in reverse_graph.nodes_iter():
+        graph.add_edge(Node(node.id, True), Node(node.id, False))
+        graph.add_edge(Node(node.id, False), Node(node.id, True))
+    print graph.nodes()
+    return graph
+
+print 'starting to convert.'
+graph = convert_to_graph(coords, adjancency_list)
+print 'graph generated. plotting now.'
+# from networkx_viewer import Viewer
+# app = Viewer(graph)
+# app.mainloop()
+# networkx.draw(graph)
+# print 'displaying plot.'
+# plt.show()
