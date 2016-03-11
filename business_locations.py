@@ -1,4 +1,5 @@
-filepath = 'C:/Users/raspberry/Documents/UC Berkeley/Sophomore S2/EE126/project/markov-maps/'
+filepath = ''
+# filepath = 'C:/Users/raspberry/Documents/UC Berkeley/Sophomore S2/EE126/project/markov-maps/'
 city_zips = open(filepath + 'business_zipcodes', 'r')
 zip_count_dic = {}
 lines = city_zips.readlines()
@@ -15,7 +16,6 @@ for line in lines:
 
 
 # filepath = 'C:/Users/raspberry/Documents/UC Berkeley/Sophomore S2/EE126/project/markov-maps/'
-filepath = ''
 zip_locs = open(filepath + 'lat_long_zip', 'r')
 
 zip_pos_dic = {}

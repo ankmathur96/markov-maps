@@ -4,7 +4,7 @@ from __future__ import division
 def score_nodes(graph, business_locs):
     for node in graph:
         for location, weight in business_locs:
-            node.score = score_func(l2_norm((node.x, node.y), location), weight)
+            node.score += score_func(l2_norm((node.x, node.y), location), weight)
 
 #graph is a networkx graph
 #node is networkx node
