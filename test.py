@@ -29,8 +29,7 @@ def convert_to_graph(coords, adjacency_list):
         node_coord = find_node(k, coords)
         node_to_add = Node(k, False)
         node_mappings[(k,False)] = node_to_add
-        if node_coord != -1:
-            node_to_add.x, node_to_add.y = node_coord[1]
+        node_to_add.x, node_to_add.y = coords[k]
         graph.add_node(node_to_add)
     for k in adjacency_list:
         edge_node_1 = node_mappings[(k,False)]
