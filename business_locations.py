@@ -51,3 +51,21 @@ area_list = [zip_combined_dic[zipcode][2] for zipcode in zip_combined_dic]
 rad_list = [(area/np.pi)**(0.5) for area in area_list]
 # plt.scatter(lat_list, long_list, s = rad_list, c = 'g')
 # plt.show()
+
+lat_range = [37.7, 37.85]
+lng_range = [-122.60, -122.35]
+
+filtered_locations = {}
+for zipcode in zip_combined_dic:
+    val = zip_combined_dic[zipcode]
+    if (lat_range[0] < val[0] < lat_range[1]) and (lng_range[0] < val[1] < lat_range[1]):
+        filtered_locations[zipcode] = val
+
+
+businesses = open(filepath + 'business_locations.txt', 'w')
+index = 0
+for key in filtered_locations:
+    zipcode, lat, lng, num = key, filtered_locations[key][0],filtered_locations[key][1],filtered_locations[key][2]
+    businesses.writelines(str(index) + " " + zipcode + " " + str(lat) + " " + str(lng) + " " + str(num) + "\n")
+    index += 1
+businesses.close()
