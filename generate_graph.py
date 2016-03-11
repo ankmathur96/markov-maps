@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import collections
 import itertools
-import networkx
+from networkx import MultiDiGraph
 
 def union_find(n):
     def find(x):
@@ -244,9 +244,9 @@ def adj_list_to_edge_list(coords, adj_list):
     return edge_list
 
 # plot the points given a list of coordinates with id as indices and a list of edges
-def plot_graph(coords, coord_labels, edge_list):
+def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight):
     fig, ax = plt.subplots()
-    ax.scatter(*itertools.izip(*coords), picker=True)
+    ax.scatter(*itertools.izip(*coords), c=node_weights, s=50, picker=True)
     ax.add_collection(collections.LineCollection(edge_list))
     ax.autoscale()
     ax.margins(0.1)
@@ -255,7 +255,8 @@ def plot_graph(coords, coord_labels, edge_list):
         for ind in event.ind:
             coord = coords[ind]
             label = coord_labels[ind]
-            print ind, coord, label
+            weight = node_weights[ind]
+            print ind, coord, weight, label
 
     fig.canvas.mpl_connect('pick_event', on_pick)
     plt.show()
@@ -279,44 +280,40 @@ class Node():
         return 'Node(id=' + str(self.id) + ', reversed=' + str(self.reversed) + ', (x,y) = (' + str(self.x) + ',' + str(self.y) + '), score=' + str(self.score) + ')'
 
 def convert_to_graph(coords, adjacency_list):
-    node_mappings = {}
-    graph = networkx.MultiDiGraph()
+    # entries are [forward node, reversed node]
+    node_mappings = [[None, None] for _ in xrange(len(coords))]
+    graph = MultiDiGraph()
     for k in adjacency_list:
-        node_to_add = Node(k, False)
-        node_mappings[(k,False)] = node_to_add
+        node_to_add = Node(k, 0)
+        node_mappings[k][0] = node_to_add
         node_to_add.x, node_to_add.y = coords[k]
         graph.add_node(node_to_add)
     for k in adjacency_list:
-        edge_node_1 = node_mappings[(k,False)]
-        graph.add_edge(edge_node_1, edge_node_1)
+        edge_node_1 = node_mappings[k][0]
+        # graph.add_edge(edge_node_1, edge_node_1)
         for neighbor in adjacency_list[k]:
-            edge_node_2 = node_mappings[(neighbor,False)]
-            if graph.has_edge(edge_node_2, edge_node_1):
+            edge_node_2 = node_mappings[neighbor][0]
+            if graph.has_edge(edge_node_1, edge_node_2):
                 continue
             else:
                 graph.add_edge(edge_node_1, edge_node_2)
-    # networkx.draw(graph)
-    # plt.show()
-    # print graph.nodes()
+
     reverse_graph = graph.reverse(copy=True)
-    # networkx.draw(graph)
-    # plt.show()
     for node in reverse_graph.nodes_iter():
-        node_to_add = Node(node.id, True)
-        node_mappings[(node.id,True)] = node_to_add
+        node_to_add = Node(node.id, 1)
+        node_mappings[node.id][1] = node_to_add
         node_to_add.x, node_to_add.y = node.x, node.y
         graph.add_node(node_to_add)
     for node in reverse_graph.nodes_iter():
-        edge_node_1 = node_mappings[(node.id,True)]   #Node(node.id, True)
+        edge_node_1 = node_mappings[node.id][0]   #Node(node.id, True)
         for n in reverse_graph.neighbors(node):
-            edge_node_2 = node_mappings[(n.id, True)]
+            edge_node_2 = node_mappings[n.id][1]
             graph.add_edge(edge_node_1, edge_node_2)
-    # print graph.nodes()
     for node in reverse_graph.nodes_iter():
-        edge_node_1 = node_mappings[(node.id, False)]
-        edge_node_2 = node_mappings[(node.id, True)]
+        edge_node_1 = node_mappings[node.id][0]
+        edge_node_2 = node_mappings[node.id][1]
         graph.add_edge(edge_node_1, edge_node_2)
         graph.add_edge(edge_node_2, edge_node_1)
     # print graph.nodes()
-    return graph
+    return graph, node_mappings
 
