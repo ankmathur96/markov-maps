@@ -323,6 +323,7 @@ class Node():
         self.x = None
         self.y = None
         self.score = 0
+        self.capacity = 0
 
     def __eq__(self, other):
         return self.id == other.id and self.reversed == other.reversed

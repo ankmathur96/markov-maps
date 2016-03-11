@@ -27,7 +27,7 @@ graph, node_mapping = convert_to_graph(coords, adj_list)
 
 print 'graph generated. scoring nodes.'
 score_nodes(graph, businesses)
-
+determine_capacity(graph, highway_adj, highway_coords)
 # scores = [x.score for x in node_mapping]
 # plot_graph(coords, ids_to_labels, scores, edge_list, None, event=True)
 
