@@ -28,10 +28,10 @@ graph, node_mapping = convert_to_graph(coords, adj_list)
 print 'graph generated. scoring nodes.'
 score_nodes(graph, businesses)
 
-plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
+# plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
 node_weights = crawl(graph, node_mapping, int(1e6))
-plot_graph(coords, ids_to_labels, node_weights, edge_list, None)
-plot_businesses(businesses)
+plot_graph(coords, ids_to_labels, node_weights, edge_list, None, event=True)
+# plot_businesses(businesses)
 plt.show()
 
 # eigvals, eigvecs = scipy.sparse.linalg.eigs(pr_mat)

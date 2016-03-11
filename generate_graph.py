@@ -248,17 +248,19 @@ def adj_list_to_edge_list(coords, adj_list):
     return edge_list
 
 # plot the points given a list of coordinates with id as indices and a list of edges
-def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight, color='b'):
+def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight, color='b', event=False):
     # fig, ax = plt.subplots()
     fig = plt.gcf()
     ax = plt.gca()
+    col = collections.LineCollection(edge_list)
+
     if node_weights is None:
-        node_weights = [1 for x in range(len(coords))]
+        node_weights = [color for x in range(len(coords))]
+        col.set_color(color)
+
     if coord_labels is None:
         coord_labels = [1 for x in range(len(coords))]
-    ax.scatter(*itertools.izip(*coords), c=node_weights, s=50, picker=True)
-    col = collections.LineCollection(edge_list)
-    col.set_color(color)
+    ax.scatter(*itertools.izip(*coords), c=node_weights, s=50, picker=event)
     ax.add_collection(col)
     ax.autoscale()
     ax.margins(0.1)
@@ -270,7 +272,8 @@ def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight, color
             weight = node_weights[ind]
             print ind, coord, weight, label
 
-    fig.canvas.mpl_connect('pick_event', on_pick)
+    if event:
+        fig.canvas.mpl_connect('pick_event', on_pick)
 
 def plot_businesses(businesses):
     # fig, ax = plt.subplots()
@@ -280,14 +283,6 @@ def plot_businesses(businesses):
     weights = [w/1000 + 200 for w in weights]
     ax.scatter(*itertools.izip(*coords), c='g', s=weights, picker=True)
     ax.margins(0.1)
-
-    def on_pick(event): # can click the points to see new id, coordinate, and label (if any)
-        for ind in event.ind:
-            coord = coords[ind]
-            weight = weights[ind]
-            print ind, coord, weight
-
-    fig.canvas.mpl_connect('pick_event', on_pick)
 
 # what you guys probably are going to use, see their respective comments above
 class Node():
