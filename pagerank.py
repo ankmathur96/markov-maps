@@ -3,10 +3,13 @@ import networkx as graphs
 import numpy as np
 
 def assign_distribution(neighbors, g_map):
-	return [1/len(neighbors) if len(neighbors) > 0 else 0 for _ in range(len(neighbors))]
+	if len(neighbors) == 0:
+		return []
+	neighbors_total = sum([neighbor.score for neighbor in neighbors])
+	return [neighbor / neighbors_total for neighbor in range(len(neighbors))]
 
 def get_node_index(node):
-	return node
+	return node.id
 
 def create_pr_matrix(g_map):
 	pr = np.zeros((len(g_map), len(g_map)))

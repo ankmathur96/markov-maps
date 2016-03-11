@@ -18,7 +18,7 @@ def get_node_to_neighbors_prob(graph, node):
         sum_neighbor_score += neighbor.score
     for neighbor in neighbors:
         trans_prob_dict[neighbor] = neighbor.score / sum_neighbor_score
-    retrn trans_prob_dict
+    return trans_prob_dict
         
 def get_zip_x((x, y, n)):
     return x
