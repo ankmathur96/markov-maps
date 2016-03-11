@@ -37,9 +37,9 @@ def test_pr_matrix():
 def crawl(graph, node_mapping, num_of_visits, restart_prob=0.01):
     nodes = graph.nodes()
     curr = random.choice(nodes)
-    encountered = [[0, 0] for i in xrange(len(node_mapping))]
+    encountered = [0 for i in xrange(len(node_mapping))]
     for i in xrange(num_of_visits):
-        encountered[curr.id][curr.reversed] += 1
+        encountered[curr.id] += 1
         if random.random() > restart_prob:
             neighbors = graph.neighbors(curr)
             if len(neighbors) == 0:
@@ -54,7 +54,7 @@ def crawl(graph, node_mapping, num_of_visits, restart_prob=0.01):
             curr = neighbors[j]
         else:
             curr = random.choice(nodes)
-    encountered = [[x / num_of_visits for x in nid] for nid in encountered]
+    encountered = [x / num_of_visits for x in encountered]
     return encountered
 
 if __name__ == "__main__":

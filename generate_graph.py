@@ -144,18 +144,22 @@ def real_lng(x): # translates the unit used by the new dataset to longitude
 def real_lat(x): # translates the unit used by the new dataset to latitude
     return -1.413746e-4 * x + 38.31506813
 
-def parse_SF_data_to_graph(lat_range, lng_range):
+def parse_SF_data_to_graph(lat_range, lng_range, node_fname, edge_fname):
     # a list of (coordinatex, coordinatey) -- id is the index in coords
     # id's are reassigned since we don't care about the roads outside of SF -- there would be too many roads
     coords = []
     old_id_to_id = {} # maps original id from the file to new id (index of the coordinate in coords)
     adjancency_list = {} # maps new id to adjacent new ids
 
+    translate = True if node_fname == 'SF_nodes.txt' else False
     # record nodes
-    with open('SF_nodes.txt', 'r') as node_file:
+    with open(node_fname, 'r') as node_file:
         for line in node_file:
             nid, x, y = line.rstrip().split(' ')
-            lng, lat = real_lng(float(x)), real_lat(float(y)) # translate their unit into actual latitude and longitude
+            if translate:
+                lng, lat = real_lng(float(x)), real_lat(float(y)) # translate their unit into actual latitude and longitude
+            else:
+                lng, lat = float(x), float(y)
             if in_range(lat, lng, lat_range, lng_range): # Only keep the roads in SF
                 old_id_to_id[nid] = len(coords)
                 coords.append((lng, lat))
@@ -163,7 +167,7 @@ def parse_SF_data_to_graph(lat_range, lng_range):
     # record edges
     for id in xrange(len(coords)):
         adjancency_list[id] = []
-    with open('SF_edges.txt', 'r') as edge_file:
+    with open(edge_fname, 'r') as edge_file:
         for line in edge_file:
             _eid, nid1, nid2, _dist = line.rstrip().split(' ')
             if nid1 in old_id_to_id and nid2 in old_id_to_id:
@@ -244,10 +248,18 @@ def adj_list_to_edge_list(coords, adj_list):
     return edge_list
 
 # plot the points given a list of coordinates with id as indices and a list of edges
-def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight):
-    fig, ax = plt.subplots()
+def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight, color='b'):
+    # fig, ax = plt.subplots()
+    fig = plt.gcf()
+    ax = plt.gca()
+    if node_weights is None:
+        node_weights = [1 for x in range(len(coords))]
+    if coord_labels is None:
+        coord_labels = [1 for x in range(len(coords))]
     ax.scatter(*itertools.izip(*coords), c=node_weights, s=50, picker=True)
-    ax.add_collection(collections.LineCollection(edge_list))
+    col = collections.LineCollection(edge_list)
+    col.set_color(color)
+    ax.add_collection(col)
     ax.autoscale()
     ax.margins(0.1)
 
@@ -259,7 +271,23 @@ def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight):
             print ind, coord, weight, label
 
     fig.canvas.mpl_connect('pick_event', on_pick)
-    plt.show()
+
+def plot_businesses(businesses):
+    # fig, ax = plt.subplots()
+    fig = plt.gcf()
+    ax = plt.gca()
+    coords, weights = itertools.izip(*businesses)
+    weights = [w/1000 + 200 for w in weights]
+    ax.scatter(*itertools.izip(*coords), c='g', s=weights, picker=True)
+    ax.margins(0.1)
+
+    def on_pick(event): # can click the points to see new id, coordinate, and label (if any)
+        for ind in event.ind:
+            coord = coords[ind]
+            weight = weights[ind]
+            print ind, coord, weight
+
+    fig.canvas.mpl_connect('pick_event', on_pick)
 
 # what you guys probably are going to use, see their respective comments above
 class Node():
@@ -268,7 +296,7 @@ class Node():
         self.reversed = reversed_graph
         self.x = None
         self.y = None
-        self.score = None
+        self.score = 0
 
     def __eq__(self, other):
         return self.id == other.id and self.reversed == other.reversed
@@ -277,43 +305,52 @@ class Node():
     def __str__(self):
         return repr(self)
     def __repr__(self):
-        return 'Node(id=' + str(self.id) + ', reversed=' + str(self.reversed) + ', (x,y) = (' + str(self.x) + ',' + str(self.y) + '), score=' + str(self.score) + ')'
+        return 'Node(id=' + str(self.id) + ', reversed=' + str(self.reversed) + ', (x,y) = (' + str(self.x) + ',' + \
+                                                str(self.y) + '), score=' + str(self.score) + ')'
 
 def convert_to_graph(coords, adjacency_list):
     # entries are [forward node, reversed node]
-    node_mappings = [[None, None] for _ in xrange(len(coords))]
+    node_mappings = [None for _ in xrange(len(coords))]
     graph = MultiDiGraph()
     for k in adjacency_list:
         node_to_add = Node(k, 0)
-        node_mappings[k][0] = node_to_add
+        node_mappings[k] = node_to_add
         node_to_add.x, node_to_add.y = coords[k]
         graph.add_node(node_to_add)
     for k in adjacency_list:
-        edge_node_1 = node_mappings[k][0]
+        edge_node_1 = node_mappings[k]
         # graph.add_edge(edge_node_1, edge_node_1)
         for neighbor in adjacency_list[k]:
-            edge_node_2 = node_mappings[neighbor][0]
-            if graph.has_edge(edge_node_1, edge_node_2):
-                continue
-            else:
-                graph.add_edge(edge_node_1, edge_node_2)
-
-    reverse_graph = graph.reverse(copy=True)
-    for node in reverse_graph.nodes_iter():
-        node_to_add = Node(node.id, 1)
-        node_mappings[node.id][1] = node_to_add
-        node_to_add.x, node_to_add.y = node.x, node.y
-        graph.add_node(node_to_add)
-    for node in reverse_graph.nodes_iter():
-        edge_node_1 = node_mappings[node.id][0]   #Node(node.id, True)
-        for n in reverse_graph.neighbors(node):
-            edge_node_2 = node_mappings[n.id][1]
+            edge_node_2 = node_mappings[neighbor]
+            # if graph.has_edge(edge_node_1, edge_node_2):
+            #     continue
+            # else:
             graph.add_edge(edge_node_1, edge_node_2)
-    for node in reverse_graph.nodes_iter():
-        edge_node_1 = node_mappings[node.id][0]
-        edge_node_2 = node_mappings[node.id][1]
-        graph.add_edge(edge_node_1, edge_node_2)
-        graph.add_edge(edge_node_2, edge_node_1)
+
+    # reverse_graph = graph.reverse(copy=True)
+    # for node in reverse_graph.nodes_iter():
+    #     node_to_add = Node(node.id, 1)
+    #     node_mappings[node.id][1] = node_to_add
+    #     node_to_add.x, node_to_add.y = node.x, node.y
+    #     graph.add_node(node_to_add)
+    # for node in reverse_graph.nodes_iter():
+    #     edge_node_1 = node_mappings[node.id][0]   #Node(node.id, True)
+    #     for n in reverse_graph.neighbors(node):
+    #         edge_node_2 = node_mappings[n.id][1]
+    #         graph.add_edge(edge_node_1, edge_node_2)
+    # for node in reverse_graph.nodes_iter():
+    #     edge_node_1 = node_mappings[node.id][0]
+    #     edge_node_2 = node_mappings[node.id][1]
+    #     graph.add_edge(edge_node_1, edge_node_2)
+    #     graph.add_edge(edge_node_2, edge_node_1)
     # print graph.nodes()
     return graph, node_mappings
 
+def parse_businesses(f_name):
+    businesses = []
+    with open(f_name, 'r') as business_in:
+        business_in.readline()
+        for line in business_in:
+            tokens = line.rstrip().split()
+            businesses.append([(float(tokens[3]), float(tokens[2])), int(tokens[4])])
+    return businesses

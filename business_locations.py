@@ -14,7 +14,8 @@ for line in lines:
         pass
 
 
-filepath = 'C:/Users/raspberry/Documents/UC Berkeley/Sophomore S2/EE126/project/markov-maps/'
+# filepath = 'C:/Users/raspberry/Documents/UC Berkeley/Sophomore S2/EE126/project/markov-maps/'
+filepath = ''
 zip_locs = open(filepath + 'lat_long_zip', 'r')
 
 zip_pos_dic = {}
