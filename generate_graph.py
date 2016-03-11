@@ -163,7 +163,6 @@ def parse_SF_data_to_graph(lat_range, lng_range, node_fname, edge_fname):
             if in_range(lat, lng, lat_range, lng_range): # Only keep the roads in SF
                 old_id_to_id[nid] = len(coords)
                 coords.append((lng, lat))
-
     # record edges
     for id in xrange(len(coords)):
         adjancency_list[id] = []
@@ -176,7 +175,38 @@ def parse_SF_data_to_graph(lat_range, lng_range, node_fname, edge_fname):
                 # add to adjacency list in terms of the new id of the nodes
                 adjancency_list[new_id1].append(new_id2)
                 adjancency_list[new_id2].append(new_id1)
-    return coords, adjancency_list
+
+    remove_nonconnected = (node_fname == 'SF_nodes.txt')
+    if not remove_nonconnected:
+        return coords, adjancency_list
+    # remove isolated groups to make irreducible
+    find, union = union_find(len(coords))
+    for u, vList in adjancency_list.iteritems():
+        for v in vList:
+            union(u, v)
+    parents = {}
+    for u in range(len(coords)):
+        parent = find(u)
+        try:
+            parents[parent].append(u)
+        except KeyError:
+            parents[parent] = [u]
+    max_scc = max([(len(group), group) for group in parents.values()])[1]
+
+    filtered_id_to_new = {}
+    new_adj_list = {}
+    new_coords = []
+    for kept_id in max_scc:
+        new_id = len(new_coords)
+        filtered_id_to_new[kept_id] = new_id
+        new_adj_list[new_id] = []
+        new_coords.append(coords[kept_id])
+    for kept_id in max_scc:
+        nodes = adjancency_list[kept_id]
+        new_id = filtered_id_to_new[kept_id]
+        for node in nodes:
+            new_adj_list[new_id].append(filtered_id_to_new[node])
+    return new_coords, new_adj_list
 
 def map_intersection_names(old_coords, old_adj_list, new_coords, new_adj_list, threshold=0.0002):
     # try to match the new dataset intersection location with the original dataset to obtain road names
@@ -260,6 +290,7 @@ def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight, color
 
     if coord_labels is None:
         coord_labels = [1 for x in range(len(coords))]
+
     ax.scatter(*itertools.izip(*coords), c=node_weights, s=50, picker=event)
     ax.add_collection(col)
     ax.autoscale()

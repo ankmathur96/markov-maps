@@ -1,4 +1,5 @@
 from __future__ import division
+
 #graph is a networkx graph
 #business_locs is a dictionary of {zipcode: (x,y,n=number_in_zipcode))}
 def score_nodes(graph, business_locs):
@@ -20,17 +21,8 @@ def get_node_to_neighbors_prob(graph, node):
     return trans_prob_dict
 
 #### UTILS:
-def get_zip_x((x, y, n)):
-    return x
-
-def get_zip_y((x, y, n)):
-    return y
-
-def get_zip_num((x, y, n)):
-    return n
-
 def l2_norm(pt1, pt2):
     return ((pt1[0] - pt2[0])**2 + (pt1[1] - pt2[1])**2)**(0.5)
 
-def score_func(x,n):
-    return n / x
+def score_func(x, n):
+    return n / (0.01 + x)
