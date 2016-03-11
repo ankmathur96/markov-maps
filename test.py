@@ -23,39 +23,47 @@ def find_node(nid, coords):
             return x
     return -1
 def convert_to_graph(coords, adjacency_list):
+    node_mappings = {}
     graph = networkx.MultiDiGraph()
     for k in adjacency_list:
         node_coord = find_node(k, coords)
         node_to_add = Node(k, False)
+        node_mappings[(k,False)] = node_to_add
         if node_coord != -1:
             node_to_add.x, node_to_add.y = node_coord[1]
         graph.add_node(node_to_add)
     for k in adjacency_list:
-        graph.add_edge(Node(k, False), Node(k, False))
+        edge_node_1 = node_mappings[(k,False)]
+        graph.add_edge(edge_node_1, edge_node_1)
         for neighbor in adjacency_list[k]:
-            if graph.has_edge(Node(neighbor,False), Node(k, False)):
+            edge_node_2 = node_mappings[(neighbor,False)]
+            if graph.has_edge(edge_node_2, edge_node_1):
                 continue
             else:
-                graph.add_edge(Node(k, False), Node(neighbor, False))
+                graph.add_edge(edge_node_1, edge_node_2)
     # networkx.draw(graph)
     # plt.show()
-    print graph.nodes()
+    # print graph.nodes()
     reverse_graph = graph.reverse(copy=True)
     # networkx.draw(graph)
     # plt.show()
     for node in reverse_graph.nodes_iter():
         node_to_add = Node(node.id, True)
+        node_mappings[(node.id,True)] = node_to_add
         node_to_add.x, node_to_add.y = node.x, node.y
         graph.add_node(node_to_add)
     for node in reverse_graph.nodes_iter():
-        new_node = Node(node.id, True)
+        edge_node_1 = node_mappings[(node.id,True)]   #Node(node.id, True)
         for n in reverse_graph.neighbors(node):
-            graph.add_edge(new_node, Node(n.id, True))
-    print graph.nodes()
+            edge_node_2 = node_mappings[(n.id, True)]
+            graph.add_edge(edge_node_1, edge_node_2)
+    # print graph.nodes()
     for node in reverse_graph.nodes_iter():
-        graph.add_edge(Node(node.id, True), Node(node.id, False))
-        graph.add_edge(Node(node.id, False), Node(node.id, True))
-    print graph.nodes()
+        edge_node_1 = node_mappings[(node.id, False)]
+        edge_node_2 = node_mappings[(node.id, True)]
+        graph.add_edge(edge_node_1, edge_node_2)
+        graph.add_edge(edge_node_2, edge_node_1)
+    # print graph.nodes()
     return graph
 def test_convert_to_graph():
 	adjacency_list = {0 : [1,2], 1 : [2], 2 : []}

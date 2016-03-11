@@ -279,20 +279,22 @@ class Node():
         return 'Node(id=' + str(self.id) + ', reversed=' + str(self.reversed) + ', (x,y) = (' + str(self.x) + ',' + str(self.y) + '), score=' + str(self.score) + ')'
 
 def convert_to_graph(coords, adjacency_list):
+    node_mappings = {}
     graph = networkx.MultiDiGraph()
     for k in adjacency_list:
         node_to_add = Node(k, False)
+        node_mappings[(k,False)] = node_to_add
         node_to_add.x, node_to_add.y = coords[k]
         graph.add_node(node_to_add)
     for k in adjacency_list:
-        graph.add_edge(Node(k, False), Node(k, False))
+        edge_node_1 = node_mappings[(k,False)]
+        graph.add_edge(edge_node_1, edge_node_1)
         for neighbor in adjacency_list[k]:
-            neighbor_node = Node(neighbor, False);
-            k_node = Node(k, False);
-            if graph.has_edge(neighbor_node, k_node):
+            edge_node_2 = node_mappings[(neighbor,False)]
+            if graph.has_edge(edge_node_2, edge_node_1):
                 continue
             else:
-                graph.add_edge(neighbor_node, k_node)
+                graph.add_edge(edge_node_1, edge_node_2)
     # networkx.draw(graph)
     # plt.show()
     # print graph.nodes()
@@ -301,17 +303,20 @@ def convert_to_graph(coords, adjacency_list):
     # plt.show()
     for node in reverse_graph.nodes_iter():
         node_to_add = Node(node.id, True)
+        node_mappings[(node.id,True)] = node_to_add
         node_to_add.x, node_to_add.y = node.x, node.y
         graph.add_node(node_to_add)
     for node in reverse_graph.nodes_iter():
-        new_node = Node(node.id, True)
+        edge_node_1 = node_mappings[(node.id,True)]   #Node(node.id, True)
         for n in reverse_graph.neighbors(node):
-            graph.add_edge(new_node, Node(n.id, True))
+            edge_node_2 = node_mappings[(n.id, True)]
+            graph.add_edge(edge_node_1, edge_node_2)
     # print graph.nodes()
     for node in reverse_graph.nodes_iter():
-        graph.add_edge(Node(node.id, True), Node(node.id, False))
-        graph.add_edge(Node(node.id, False), Node(node.id, True))
+        edge_node_1 = node_mappings[(node.id, False)]
+        edge_node_2 = node_mappings[(node.id, True)]
+        graph.add_edge(edge_node_1, edge_node_2)
+        graph.add_edge(edge_node_2, edge_node_1)
     # print graph.nodes()
-
     return graph
 
