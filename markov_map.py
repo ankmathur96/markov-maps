@@ -48,8 +48,7 @@ for node in graph:
 sorted_weights = sorted([(weight, i) for i, weight in enumerate(normalized_weights)], reverse=True)
 most_impacted = sorted_weights[:30]
 for weight, i in most_impacted:
-	print weight, ids_to_labels[i]
-
+	print weight, ids_to_labels[i], coords[i]
 
 plot_graph(coords, ids_to_labels, normalized_weights, edge_list, None, event=True)
 plot_businesses(businesses)
