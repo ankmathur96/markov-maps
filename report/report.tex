@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage{graphicx}
+\usepackage{color}
 \begin{document}
 \title{Using Markov Chains to Model Traffic and Rank Importance of Infrastructure}
 \author{Ankit Mathur, Zhongxia Yan, Eli Dykaar}
@@ -66,8 +67,11 @@ Note that this shows several features that we think prove that our model is a su
  \includegraphics[width=8cm,height=5cm]{../figs/f2} \\
 First, we can see several red nodes, which indicate nodes that have gone over capacity. We see on on the bridge, and we see several bright nodes in the area around the bridge. Another example can be seen near the Financial District/Embarcadero, where we had a very large business node (note that this is where several big startups and other companies actually have offices). \\
  \includegraphics[width=8cm,height=5cm]{../figs/f3} \\
-Note that, in this case, the red nodes are actually the highway nodes, but we still see a significant amount of bright psots, particularly near the business nodes, which you can see are the large green nodes.
-
+Note that, in this case, the red nodes are actually the highway nodes, but we still see a significant amount of bright spots, particularly near the business nodes, which you can see are the large green nodes.
+Finally, and most importantly, we compare the worst capacity-ratio coordinates (the coordinates where there is the most traffic relative to the capacity of the node) returned by the traffic model with an actual average traffic map at peak time from Google Maps: \\
+ \includegraphics[width=10cm,height=8cm]{../figs/fkey} \\
+ The stars are the top 3 points returned by our traffic model, which, at this peak time, look like they have a significant amount of traffic. This is proof that our Markov model indeed accurately represents the traffic. \\
+ To run our traffic model, run $\texttt{markov\_map.py}$.
 \section{Discussion/Limitations}
 Our Markov Chain model for the road San Francisco network and PageRank algorithm as the tool to model traffic flow has various limitations. There are very limited data sets available to that model the road network as graph with nodes and edges – we were very lucky to be able to find a dataset for the San Francisco area.  Therefore, modelling other parts of the country with this technique would be difficult because there simply is not good data available. 
 

@@ -24,6 +24,10 @@ INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/infwarerr.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/infwarerr.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
 INPUT /usr/local/texlive/2015/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/graphics/color.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/graphics/color.sty
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/latexconfig/color.cfg
+INPUT /usr/local/texlive/2015/texmf-dist/tex/latex/latexconfig/color.cfg
 INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/report.aux
 INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/report.aux
 OUTPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/report.aux
@@ -78,6 +82,10 @@ INPUT ../figs/f2.png
 INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/../figs/f3.png
 INPUT ../figs/f3.png
 INPUT ../figs/f3.png
+INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/../figs/fkey.jpg
+INPUT ../figs/fkey.jpg
+INPUT ../figs/fkey.jpg
+INPUT /usr/local/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
 INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/report.aux
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb
@@ -93,3 +101,4 @@ INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb
+INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb
