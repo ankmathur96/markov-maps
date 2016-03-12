@@ -2,6 +2,7 @@ from generate_graph import *
 from generate_prob import *
 from pagerank import *
 import scipy
+import math
 from pprint import pprint
 
 lat_range = [37.7, 37.85]
@@ -30,15 +31,27 @@ graph, node_mapping = convert_to_graph(coords, adj_list)
 print 'graph generated. scoring nodes.'
 score_nodes(graph, businesses)
 determine_capacities(graph, highway_adj, highway_coords)
-# capacities = [0 for _ in coords]
+
+
+# Random
+# plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
 # for node in graph:
-# 	capacities[node.id] = node.factors['capacity']
+# 	node.score = 1
+# 	node.factors['hwy_dist'] = 1
+# node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
+# normalized_weights = [0 for _ in xrange(len(coords))]
+# for node in graph:
+# 	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
 
-# scores = [x.score for x in node_mapping]
-# plot_graph(coords, ids_to_labels, scores, edge_list, None, event=True)
+# total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
+
+# print total_dispersion
+# plot_graph(coords, ids_to_labels, normalized_weights, edge_list, None, event=True)
+# plot_businesses(businesses)
+# plt.show()
 
 
-plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
+
 node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
 
 normalized_weights = [0 for _ in xrange(len(coords))]
@@ -46,10 +59,30 @@ for node in graph:
 	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
 
 sorted_weights = sorted([(weight, i) for i, weight in enumerate(normalized_weights)], reverse=True)
-most_impacted = sorted_weights[:30]
+most_impacted = sorted_weights[:10]
 for weight, i in most_impacted:
 	print weight, ids_to_labels[i], coords[i]
 
+total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
+print total_dispersion
+
+
+# Resolving the 30 most impacted nodes
+most_impacted_id = [x[1] for x in most_impacted]
+for node in graph:
+	if node.id in most_impacted_id:
+		node.factors['capacity'] += 0.5
+
+node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
+for node in graph:
+	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
+total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
+
+print total_dispersion
+
+
+
+plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
 plot_graph(coords, ids_to_labels, normalized_weights, edge_list, None, event=True)
 plot_businesses(businesses)
 plt.show()
