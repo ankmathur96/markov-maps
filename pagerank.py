@@ -2,12 +2,30 @@ from __future__ import division
 import networkx as graphs
 import numpy as np
 import random
+import math
 
-def assign_distribution(neighbors, g_map):
-    if len(neighbors) == 0:
-        return []
-    neighbors_total = sum([neighbor.score for neighbor in neighbors])
-    return [neighbor.score / neighbors_total for neighbor in neighbors]
+
+#graph is a networkx graph
+#node is networkx node
+#returns a dictionary of {neighbor: node to neighbor transition prob}
+def get_node_to_neighbors_prob(graph, neighbors):
+    trans_prob_dict = []
+    if len(neighbors) == 1:
+        return [1]
+    sum_hwy_score = 0
+    neighbor_scores = []
+    for neighbor in neighbors:
+        neighbor_scores.append(neighbor.score)
+        sum_hwy_score += 1 / (0.001 + neighbor.factors['hwy_dist'])
+    sum_neighbor_score = sum(neighbor_scores)
+    # avg_neighbor_score = sum_neighbor_score / len(neighbor_scores)
+    # neighbor_scores = [x - avg_neighbor_score for x in neighbor_scores]
+    # min_score = 4 * abs(min(neighbor_scores))
+    # neighbor_scores = [x + min_score for x in neighbor_scores]
+    # sum_neighbor_score = sum(neighbor_scores)
+    for i, neighbor in enumerate(neighbors):
+        trans_prob_dict.append(0.7 * (neighbor_scores[i] / sum_neighbor_score) + 0.3 * (1 / (0.001 + neighbor.factors['hwy_dist']) / sum_hwy_score))
+    return trans_prob_dict
 
 def get_node_index(node):
     return node.id
@@ -47,7 +65,7 @@ def crawl(graph, node_mapping, num_of_visits, restart_prob=0.01):
             if len(neighbors) == 0:
                 curr = random.choice(nodes)
                 continue
-            dist = assign_distribution(neighbors, graph)
+            dist = get_node_to_neighbors_prob(graph, neighbors)
             r = random.random()
             j = 0
             while r > dist[j]:

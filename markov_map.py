@@ -37,9 +37,21 @@ determine_capacities(graph, highway_adj, highway_coords)
 # scores = [x.score for x in node_mapping]
 # plot_graph(coords, ids_to_labels, scores, edge_list, None, event=True)
 
+
 plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
 node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
-plot_graph(coords, ids_to_labels, node_weights, edge_list, None, event=True)
+
+normalized_weights = [0 for _ in xrange(len(coords))]
+for node in graph:
+	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
+
+sorted_weights = sorted([(weight, i) for i, weight in enumerate(normalized_weights)], reverse=True)
+most_impacted = sorted_weights[:30]
+for weight, i in most_impacted:
+	print weight, ids_to_labels[i]
+
+
+plot_graph(coords, ids_to_labels, normalized_weights, edge_list, None, event=True)
 plot_businesses(businesses)
 plt.show()
 

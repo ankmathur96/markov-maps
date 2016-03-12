@@ -10,27 +10,7 @@ def score_nodes(graph, business_locs):
         neighbor_dists = []
         for location, weight in business_locs:
             neighbor_dists.append(score_func(l2_norm((node.x, node.y), location), weight))
-        node.score = max(neighbor_dists)
-
-#graph is a networkx graph
-#node is networkx node
-#returns a dictionary of {neighbor: node to neighbor transition prob}
-def get_node_to_neighbors_prob(graph, node):
-    trans_prob_dict = {}
-    neighbors = graph.neighbors(node)
-    sum_hwy_score = 0
-    neighbor_scores = []
-    for neighbor in neighbors:
-        neighbor_scores.append(neighbor.score)
-        sum_hwy_score += neighbor.factor['hwy_dist']
-    sum_neighbor_score = sum(neighbor_scores)
-    avg_neighbor_score = sum_neighbor_score / len(neighbor_scores)
-    neighbor_scores = [x - avg_neighbor_score for x in neighbor_scores]
-    min_score = 3 * math.abs(min(neighbor_scores))
-    neighbor_scores = [x + min_score for x in neighbor_scores]
-    for neighbor in neighbors:
-        trans_prob_dict[neighbor] = 0.7 * (neighbor.score / sum_neighbor_score) + 0.3 * (neighbor.factors['hwy_dist'] / sum_hwy_score)
-    return trans_prob_dict
+        node.score = max([x for x in neighbor_dists])
 
 def get_hwy_dist(n_coord, h_coord1, h_coord2, connected):
     if connected:
