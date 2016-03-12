@@ -19,11 +19,11 @@ The canonical example of Pagerank involves moving to different websites with eve
 In order to generate what we think is a valid traffic model, we used a variety of metrics and datasets that we describe in the Experiments section.
 \section{Experiments}
 \subsection{Obtaining and Structuring Data}
-It was important to us that we work on a dataset of actual value, and so it was important to us that we find a map that was an actual road network. We ended up using a full map of the San Francisco Bay Area that was used in ``On Trip Planning Queries in Spatial Databases'' (Li, Cheng, Hadjieleftheriou, Kollios, Teng 2005). From this list of nodes and edges, we generated a graph with edges going in both directions (we ignore 1 way roads and want to ensure the Markov chain is irreducible). 
+It was important to us that we work on a dataset of actual value, and so it was important to us that we find a map that was an actual road network. We ended up using a full map of the San Francisco Bay Area that was used in ``On Trip Planning Queries in Spatial Databases'' (Li, Cheng, Hadjieleftheriou, Kollios, Teng 2005). From this list of nodes and edges, we generated a graph with edges going in both directions (we ignore 1 way roads). Since the edges are bidirectional, we find the largest strongly connected components in the graph and keep that in order to ensure irreducibility.
 
 To get the businesses in each zipcode, we had to combine multiple datasets into one. We found a list of businesses in San Francisco from a San Francisco local government website (https://data.sfgov.org/Economy-and-Community/Registered-Business-Locations-San-Francisco/g8m3-pdis), which we then integrated with a database that mapped zipcodes to latitudes and longitudes. We joined over this dataset to get the number of businesses in a zipcode and then used a geocoding API to find the centroid of each zipcode, which is where we put the business nodes, along with the associated weights, which were the actual number of businesses in that zipcode.
 
-Finally, we computed the capacities of the roads with a heuristic. From the same data source as the SF Bay Area dataset, we obtained a data set of the highways as well. We used a constant for highway capacity and a lower one for internal roads. While more accurate data would have been nice, we could not figure out a valid heuristic from which to compute capacities, other than using ``around'' the expected number of lanes overall.  
+Finally, we computed the capacities of the roads with a heuristic. From the same data source as the SF Bay Area dataset, we obtained a data set of the highways as well. We used 8 for highway capacity and 2 for internal roads (later scaled to a floating point between 0 and 1). While more accurate data would have been nice, we could not figure out a valid heuristic from which to compute capacities, other than using ``around'' the expected number of lanes overall.
 \subsection{Implementing Pagerank}
 We originally tried to implement Pagerank as a matrix, and we were using the eigenvector decomposition to efficiently compute the matrix power. Unfortunately, we quickly realized that with the size of our graph was too large to be computing the eigenvalue decomposition. At first, we ran into memory errors, and then, we attempted to use the SciPy sparse matrix to represent the matrix more efficiently (the average degree of the nodes in our SF graph is around 4, so out of ~10k entries in a row, only 4 are nonzero. Unfortunately, this eigenvalue decomposition was still taking too long, making it difficult to debug.
 
@@ -40,20 +40,22 @@ We used the business set to compute a ``score'' for each node that depended on a
 \begin{eqnarray*}
 	score(i) = \sum\limits_{b \in \mathbf{B}} dist(business) = score(i)
 \end{eqnarray*}
-Ultimately, though, we ended up also factoring the fact that highways have more capacity, and so people are more likely to use those nodes into the calculation for the score. We ended up using (where $score(i)$ is the previous equation we had):
+Ultimately, though, we ended up also factoring the fact that highways have more capacity, and so people are more likely to use those nodes into the calculation for the score. This makes sense because highway exits are likely to be popular. We ended up using (where $score(i)$ is the previous equation we had):
 \begin{eqnarray*}
 	0.7 \cdot score(i)+ 0.3 \cdot \frac{\frac{1}{0.001 + distToHighway(i)}}{\sum\limits_{n \in \mathbf{N}} \frac{1}{0.001 + distToHighway(n)})}
 \end{eqnarray*}
-However, we found that this was not a good enough model 
-We first assigned probabilities for every node by normalizing over the sum of the scores for a given node. Therefore, we had the following equation: \\
+
+Finally, we first assigned probabilities for every node by normalizing over the sum of the scores for a given node. Therefore, we had the following equation: \\
 \begin{eqnarray*}
 	P(i,j) = \frac{score(j)}{\sum\limits_{n \in \mathbf{N}} score(n)}
 \end{eqnarray*}
-where $\mathbf{N}$ is the neighbors of node $i$.
-However, we found that this naive approach to the probabilities created situations where nodes that were too far away from the businesses had too little of an incentive to move towards the businesses. This led to some cases where people got stuck in the suburbs. Therefore, we fixed this by subtracting the mean of all of the scores of the neighbors, add a constant factor, and then normalize.
+
+In addition, we modeled traffic at intersection by adding a self loop probability: either the crawler will stay at the node for an additional turn, or it will proceed to one of the neighbors with $P(i, j)$. This self loop probability is assigned as a function of capacity (a normalized value between 0 and 1):
 \begin{eqnarray*}
-	P(i,j) = \frac{score(j) - avg(\mathbf{N}) + k}{\sum\limits_{n \in \mathbf{N}} (score(n) - avg(\mathbf{N}) + k)}
+	P(i, i) = 0.3 * (1 - capacity(i))
 \end{eqnarray*}
+
+This means that $P(i, j)$ is scaled down to the remaining probability.
 
 \section{Results/Analysis}
 The following is a graphical representation of the roads with the brighter nodes being those roads that are closer to their total capacity: \\
