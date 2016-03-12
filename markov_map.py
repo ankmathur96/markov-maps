@@ -63,22 +63,22 @@ most_impacted = sorted_weights[:10]
 for weight, i in most_impacted:
 	print weight, ids_to_labels[i], coords[i]
 
-total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
-print total_dispersion
+# total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
+# print total_dispersion
 
 
-# Resolving the 30 most impacted nodes
-most_impacted_id = [x[1] for x in most_impacted]
-for node in graph:
-	if node.id in most_impacted_id:
-		node.factors['capacity'] += 0.5
+# # Resolving the 30 most impacted nodes
+# most_impacted_id = [x[1] for x in most_impacted]
+# for node in graph:
+# 	if node.id in most_impacted_id:
+# 		node.factors['capacity'] += 0.5
 
-node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
-for node in graph:
-	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
-total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
+# node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
+# for node in graph:
+# 	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
+# total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
 
-print total_dispersion
+# print total_dispersion
 
 
 
