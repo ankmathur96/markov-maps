@@ -6,6 +6,8 @@ from pprint import pprint
 
 lat_range = [37.7, 37.85]
 lng_range = [-122.60, -122.35]
+bus_lat_range = [37.75, 37.81]
+bus_lng_range = [-122.45, -122.375]
 max_road_distance = float('inf') # 0.007
 
 print 'parsing old dataset'
@@ -21,18 +23,22 @@ highway_edge_list = adj_list_to_edge_list(highway_coords, highway_adj)
 # plot_graph(coords, ids_to_labels, edge_list)
 
 businesses = parse_businesses('business_locations_data.txt')
-businesses = [((lng, lat), weight) for (lng, lat), weight in businesses if in_range(lat, lng, lat_range, lng_range)]
+businesses = [((lng, lat), weight) for (lng, lat), weight in businesses if in_range(lat, lng, bus_lat_range, bus_lng_range)]
 print 'starting to convert'
 graph, node_mapping = convert_to_graph(coords, adj_list)
 
 print 'graph generated. scoring nodes.'
 score_nodes(graph, businesses)
-determine_capacity(graph, highway_adj, highway_coords)
+determine_capacities(graph, highway_adj, highway_coords)
+# capacities = [0 for _ in coords]
+# for node in graph:
+# 	capacities[node.id] = node.factors['capacity']
+
 # scores = [x.score for x in node_mapping]
 # plot_graph(coords, ids_to_labels, scores, edge_list, None, event=True)
 
 plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
-node_weights = crawl(graph, node_mapping, int(1e6))
+node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
 plot_graph(coords, ids_to_labels, node_weights, edge_list, None, event=True)
 plot_businesses(businesses)
 plt.show()

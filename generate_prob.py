@@ -1,11 +1,16 @@
 from __future__ import division
-MAX_CAPACITY = 3000
+import math
+HWY_CAP = 8
+ROAD_CAP = 2
+
 #graph is a networkx graph
 #business_locs is a dictionary of {zipcode: (x,y,n=number_in_zipcode))}
 def score_nodes(graph, business_locs):
     for node in graph:
+        neighbor_dists = []
         for location, weight in business_locs:
-            node.score += score_func(l2_norm((node.x, node.y), location), weight)
+            neighbor_dists.append(score_func(l2_norm((node.x, node.y), location), weight))
+        node.score = max(neighbor_dists)
 
 #graph is a networkx graph
 #node is networkx node
@@ -13,11 +18,18 @@ def score_nodes(graph, business_locs):
 def get_node_to_neighbors_prob(graph, node):
     trans_prob_dict = {}
     neighbors = graph.neighbors(node)
-    sum_neighbor_score = 0
+    sum_hwy_score = 0
+    neighbor_scores = []
     for neighbor in neighbors:
-        sum_neighbor_score += neighbor.score
+        neighbor_scores.append(neighbor.score)
+        sum_hwy_score += neighbor.factor['hwy_dist']
+    sum_neighbor_score = sum(neighbor_scores)
+    avg_neighbor_score = sum_neighbor_score / len(neighbor_scores)
+    neighbor_scores = [x - avg_neighbor_score for x in neighbor_scores]
+    min_score = 3 * math.abs(min(neighbor_scores))
+    neighbor_scores = [x + min_score for x in neighbor_scores]
     for neighbor in neighbors:
-        trans_prob_dict[neighbor] = neighbor.score / sum_neighbor_score
+        trans_prob_dict[neighbor] = 0.7 * (neighbor.score / sum_neighbor_score) + 0.3 * (neighbor.factors['hwy_dist'] / sum_hwy_score)
     return trans_prob_dict
 
 def get_hwy_dist(n_coord, h_coord1, h_coord2, connected):
@@ -30,17 +42,20 @@ def get_hwy_dist(n_coord, h_coord1, h_coord2, connected):
         return l2_norm(n_coord, h_coord1)
 
 def assign_capacity(closest_dist):
-    if closest_dist != 0:
-        return min(1/closest_dist, MAX_CAPACITY)
+    if closest_dist < 0.001:
+        capacity = HWY_CAP
     else:
-        return MAX_CAPACITY
+        capacity = ROAD_CAP
+    return capacity / HWY_CAP
 
 def determine_capacities(graph, highway_adj, highway_coords):
     for n in graph:
-        h_dist = sorted([(l2_norm((n.x,n.y), node), index) for index, node in enumerate(highway_coords)])
+        h_dist = sorted([(l2_norm((n.x, n.y), node), index) for index, node in enumerate(highway_coords)])
         (dist1, n1), (dist2, n2) = h_dist[:2]
-        closest_dist = get_hwy_dist((n.x,n.y), highway_coords[n1], highway_coords[n2], n1 in highway_adj[n2])
-        n.capacity = assign_capacity(closest_dist)
+        closest_dist = get_hwy_dist((n.x, n.y), highway_coords[n1], highway_coords[n2], n1 in highway_adj[n2])
+        n.factors['capacity'] = assign_capacity(closest_dist)
+        n.factors['hwy_dist'] = closest_dist
+
 #### UTILS:
 def l2_norm(pt1, pt2):
     return ((pt1[0] - pt2[0])**2 + (pt1[1] - pt2[1])**2)**(0.5)

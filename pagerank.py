@@ -40,6 +40,8 @@ def crawl(graph, node_mapping, num_of_visits, restart_prob=0.01):
     encountered = [0 for i in xrange(len(node_mapping))]
     for i in xrange(num_of_visits):
         encountered[curr.id] += 1
+        if random.random() < 0.3 * (1 - curr.factors['capacity']):
+            continue
         if random.random() > restart_prob:
             neighbors = graph.neighbors(curr)
             if len(neighbors) == 0:

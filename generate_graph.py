@@ -290,7 +290,7 @@ def plot_graph(coords, coord_labels, node_weights, edge_list, edge_weight, color
 
     if coord_labels is None:
         coord_labels = [1 for x in range(len(coords))]
-
+    col.set_linewidth(0.4)
     ax.scatter(*itertools.izip(*coords), c=node_weights, s=50, picker=event)
     ax.add_collection(col)
     ax.autoscale()
@@ -311,7 +311,7 @@ def plot_businesses(businesses):
     fig = plt.gcf()
     ax = plt.gca()
     coords, weights = itertools.izip(*businesses)
-    weights = [w/1000 + 200 for w in weights]
+    weights = [w/50 + 50 for w in weights]
     ax.scatter(*itertools.izip(*coords), c='g', s=weights, picker=True)
     ax.margins(0.1)
 
@@ -323,7 +323,7 @@ class Node():
         self.x = None
         self.y = None
         self.score = 0
-        self.capacity = 0
+        self.factors = {}
 
     def __eq__(self, other):
         return self.id == other.id and self.reversed == other.reversed
