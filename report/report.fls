@@ -73,18 +73,18 @@ INPUT /usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbx7.tfm
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmbx5.tfm
-INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/../figs/f1.png
-INPUT ../figs/f1.png
-INPUT ../figs/f1.png
-INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/../figs/f2.png
-INPUT ../figs/f2.png
-INPUT ../figs/f2.png
-INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/../figs/f3.png
-INPUT ../figs/f3.png
-INPUT ../figs/f3.png
-INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/../figs/fkey.jpg
-INPUT ../figs/fkey.jpg
-INPUT ../figs/fkey.jpg
+INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/./figs/f1.png
+INPUT ./figs/f1.png
+INPUT ./figs/f1.png
+INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/./figs/f2.png
+INPUT ./figs/f2.png
+INPUT ./figs/f2.png
+INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/./figs/f3.png
+INPUT ./figs/f3.png
+INPUT ./figs/f3.png
+INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/./figs/fkey.jpg
+INPUT ./figs/fkey.jpg
+INPUT ./figs/fkey.jpg
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/tfm/public/cm/cmtt10.tfm
 INPUT /Users/ankitmathur/Google Drive/semester_4/ee126/markov-maps/report/report.aux
 INPUT /usr/local/texlive/2015/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb

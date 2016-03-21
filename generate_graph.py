@@ -91,7 +91,7 @@ def parse_old_data_to_graph(lat_range, lng_range, max_road_distance):
     # maps coordinates to streets at those coordinates
     labeled_coords = {}
 
-    with open('intersection_data.csv', 'r') as int_dest_old:
+    with open('data/intersection_data.csv', 'r') as int_dest_old:
         for line in int_dest_old:
             st1, st2, lat, lng = line.rstrip().split(',')
             try:
@@ -151,7 +151,7 @@ def parse_SF_data_to_graph(lat_range, lng_range, node_fname, edge_fname):
     old_id_to_id = {} # maps original id from the file to new id (index of the coordinate in coords)
     adjancency_list = {} # maps new id to adjacent new ids
 
-    translate = True if node_fname == 'SF_nodes.txt' else False
+    translate = True if node_fname == 'data/SF_nodes.txt' else False
     # record nodes
     with open(node_fname, 'r') as node_file:
         for line in node_file:
@@ -176,7 +176,7 @@ def parse_SF_data_to_graph(lat_range, lng_range, node_fname, edge_fname):
                 adjancency_list[new_id1].append(new_id2)
                 adjancency_list[new_id2].append(new_id1)
 
-    remove_nonconnected = (node_fname == 'SF_nodes.txt')
+    remove_nonconnected = (node_fname == 'data/SF_nodes.txt')
     if not remove_nonconnected:
         return coords, adjancency_list
     # remove isolated groups to make irreducible

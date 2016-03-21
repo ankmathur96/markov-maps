@@ -39,7 +39,7 @@ While this was a coarse way of assigning scores, we felt it wasn't too bad, as, 
 
 We used the business set to compute a ``score'' for each node that depended on a function of distance from businesses. How we computed node scores involved some iteration as well. We began by doing a weighted average over the distance for all businesses. So, for any node, the score was:
 \begin{eqnarray*}
-	score(i) = \sum\limits_{b \in \mathbf{B}} dist(business) = score(i)
+	score(i) = \sum\limits_{b \in \mathbf{B}} \frac{1}{dist(business)}
 \end{eqnarray*}
 Ultimately, though, we ended up also factoring the fact that highways have more capacity, and so people are more likely to use those nodes into the calculation for the score. This makes sense because highway exits are likely to be popular. We ended up using (where $score(i)$ is the previous equation we had):
 \begin{eqnarray*}
@@ -61,15 +61,15 @@ This means that $P(i, j)$ is scaled down to the remaining probability.
 \section{Results/Analysis}
 The following is a graphical representation of the roads with the brighter nodes being those roads that are closer to their total capacity: \\
 % \begin{figure}
-\includegraphics[width=8cm,height=5cm]{../figs/f1}\\
+\includegraphics[width=8cm,height=5cm]{./figs/f1}\\
 % \end{figure}
 Note that this shows several features that we think prove that our model is a successful representation of traffic. At a high level, we can note that almost all of the bright spots cluster around the business nodes, which we found leads to ``over-capacity'' nodes being in places where there is a high demand to get to a business. We can zoom in on various locations to prove that this is a valid representation of traffic. This next image zooms in on the area near the Golden Gate Bridge, notorious for having a significant amount of traffic on commute mornings. \\
- \includegraphics[width=8cm,height=5cm]{../figs/f2} \\
+ \includegraphics[width=8cm,height=5cm]{./figs/f2} \\
 First, we can see several red nodes, which indicate nodes that have gone over capacity. We see on on the bridge, and we see several bright nodes in the area around the bridge. Another example can be seen near the Financial District/Embarcadero, where we had a very large business node (note that this is where several big startups and other companies actually have offices). \\
- \includegraphics[width=8cm,height=5cm]{../figs/f3} \\
+ \includegraphics[width=8cm,height=5cm]{./figs/f3} \\
 Note that, in this case, the red nodes are actually the highway nodes, but we still see a significant amount of bright spots, particularly near the business nodes, which you can see are the large green nodes.
 Finally, and most importantly, we compare the worst capacity-ratio coordinates (the coordinates where there is the most traffic relative to the capacity of the node) returned by the traffic model with an actual average traffic map at peak time from Google Maps: \\
- \includegraphics[width=10cm,height=8cm]{../figs/fkey} \\
+ \includegraphics[width=10cm,height=8cm]{./figs/fkey} \\
  The stars are the top 3 points returned by our traffic model, which, at this peak time, look like they have a significant amount of traffic. This is proof that our Markov model indeed accurately represents the traffic. \\
  To run our traffic model, run $\texttt{markov\_map.py}$.
 \section{Discussion/Limitations}

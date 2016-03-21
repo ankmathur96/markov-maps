@@ -10,7 +10,7 @@ def score_nodes(graph, business_locs):
         neighbor_dists = []
         for location, weight in business_locs:
             neighbor_dists.append(score_func(l2_norm((node.x, node.y), location), weight))
-        node.score = max([x for x in neighbor_dists])
+        node.score = max([1/x for x in neighbor_dists])
 
 def get_hwy_dist(n_coord, h_coord1, h_coord2, connected):
     if connected:
