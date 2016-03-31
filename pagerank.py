@@ -52,11 +52,15 @@ def test_pr_matrix():
         g.add_edge(i, i+1 % N_NODES)
     print(create_pr_matrix(g))
 
-def crawl(graph, node_mapping, num_of_visits, restart_prob=0.01):
+def crawl(graph, node_mapping, num_of_visits, restart_prob=0.01, plot_func=None, num_plots=10):
     nodes = graph.nodes()
     curr = random.choice(nodes)
     encountered = [0 for i in xrange(len(node_mapping))]
-    for i in xrange(num_of_visits):
+    plot_interval = num_of_visits // num_plots
+    for i in xrange(num_of_visits + 1):
+        if i % plot_interval == 0:
+            encountered = [x / num_of_visits for x in encountered]
+            plot_func(encountered)
         encountered[curr.id] += 1
         if random.random() < 0.3 * (1 - curr.factors['capacity']):
             continue
@@ -74,7 +78,6 @@ def crawl(graph, node_mapping, num_of_visits, restart_prob=0.01):
             curr = neighbors[j]
         else:
             curr = random.choice(nodes)
-    encountered = [x / num_of_visits for x in encountered]
     return encountered
 
 if __name__ == "__main__":

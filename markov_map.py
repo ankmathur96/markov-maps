@@ -1,9 +1,13 @@
 from generate_graph import *
 from generate_prob import *
 from pagerank import *
-import scipy
 import math
 from pprint import pprint
+import time
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 # boxed/limited range
 lat_range = [37.7, 37.85]
@@ -34,57 +38,29 @@ score_nodes(graph, businesses)
 determine_capacities(graph, highway_adj, highway_coords)
 
 
-# Random
-# plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
-# for node in graph:
-# 	node.score = 1
-# 	node.factors['hwy_dist'] = 1
-# node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
-# normalized_weights = [0 for _ in xrange(len(coords))]
-# for node in graph:
-# 	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
+def plot_results(node_weights):
+	normalized_weights = [0 for _ in xrange(len(coords))]
+	for node in graph:
+		normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
 
-# total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
+	# sorted_weights = sorted([(weight, i) for i, weight in enumerate(normalized_weights)], reverse=True)
+	# most_impacted = sorted_weights[:10]
+	# for weight, i in most_impacted:
+	# 	print weight, ids_to_labels[i], coords[i]
+	plot_graph(coords, ids_to_labels, normalized_weights, edge_list, None, event=True)
+	plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
+	plot_businesses(businesses)
+	
+	plt.draw()
+	time.sleep(0.1)
+	plt.pause(0.1)
 
-# print total_dispersion
-# plot_graph(coords, ids_to_labels, normalized_weights, edge_list, None, event=True)
-# plot_businesses(businesses)
-# plt.show()
-
-
-
-node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
-
-normalized_weights = [0 for _ in xrange(len(coords))]
-for node in graph:
-	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
-
-sorted_weights = sorted([(weight, i) for i, weight in enumerate(normalized_weights)], reverse=True)
-most_impacted = sorted_weights[:10]
-for weight, i in most_impacted:
-	print weight, ids_to_labels[i], coords[i]
-
-# total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
-# print total_dispersion
-
-
-# # Resolving the 30 most impacted nodes
-# most_impacted_id = [x[1] for x in most_impacted]
-# for node in graph:
-# 	if node.id in most_impacted_id:
-# 		node.factors['capacity'] += 0.5
-
-# node_weights = crawl(graph, node_mapping, int(1e6), 0.01)
-# for node in graph:
-# 	normalized_weights[node.id] = node_weights[node.id] / node.factors['capacity']
-# total_dispersion = -sum([math.log(x) * x for x in normalized_weights])
-
-# print total_dispersion
-
-plot_graph(highway_coords, None, None, highway_edge_list, None, 'r')
-plot_graph(coords, ids_to_labels, normalized_weights, edge_list, None, event=True)
-plot_businesses(businesses)
+mng = plt.get_current_fig_manager()
+mng.window.state('zoomed')
+plt.ion()
 plt.show()
+node_weights = crawl(graph, node_mapping, int(5e5), 0.01, plot_results)
+
 
 # eigvals, eigvecs = scipy.sparse.linalg.eigs(pr_mat)
 # D = np.zeros((n, n), dtype='complex64')
